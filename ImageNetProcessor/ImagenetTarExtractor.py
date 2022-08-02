@@ -10,8 +10,9 @@ import tarfile
 
 from imagenetLabels import imagenet_original_labels
 
-imagenet_dir = './ILSVRC2012_img_train'
-initial_dir = './ImageNetImagesUnsized'
+BASE_DIR = os.environ.get('ImageNetDir')
+imagenet_dir = BASE_DIR + './ILSVRC2012_img_train'
+initial_dir = BASE_DIR + './ImageNetImagesUnsized'
 
 def decodeDir(directory=imagenet_dir, target_dir=initial_dir):
     # labels = unpickle(imagenet_dir + '/batches.meta')

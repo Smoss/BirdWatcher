@@ -3,53 +3,97 @@ import argparse
 import shutil
 import csv
 import random
+import pickle
+from typing import Tuple, List, Dict
+
 import imagenetLabels
 from PIL import Image
-imagenet_dir = './ImageNetImages'
+BASE_DIR = os.environ.get('ImageNetDir')
+imagenet_dir = BASE_DIR + '/ImageNetImages224Size'
 bird_labels = [
+    'cock',
+    'hen',
+    'ostrich',
+    'brambling',
+    'goldfinch',
+    'house_finch',
+    'junco',
+    'indigo_bunting',
+    'robin',
+    'bulbul',
+    'jay',
+    'magpie',
+    'chickadee',
+    'water_ouzel',
+    'kite',
+    'bald_eagle',
+    'vulture',
+    'great_grey_owl',
+    'black_grouse',
+    'ptarmigan',
+    'ruffed_grouse',
+    'prairie_chicken',
+    'peacock',
+    'quail',
+    'partridge',
+    'African_grey',
+    'macaw',
+    'sulphur_crested_cockatoo',
+    'lorikeet',
+    'coucal',
+    'bee_eater',
+    'hornbill',
+    'hummingbird',
+    'jacamar',
+    'toucan',
+    'drake',
+    'red_breasted_merganser',
+    'goose',
+    'black_swan',
+    'white_stork',
+    'black_stork',
+    'spoonbill',
+    'flamingo',
+    'American_egret',
+    'little_blue_heron',
+    'bittern',
+    'crane',
+    'limpkin',
+    'American_coot',
+    'bustard',
+    'ruddy_turnstone',
+    'red_backed_sandpiper',
+    'redshank',
+    'dowitcher',
+    'oystercatcher',
+    'European_gallinule',
+    'pelican',
+    'king_penguin',
+    'albatross',
 ]
 
 def decodeDir(
-        directory=imagenet_dir,
-        validate=False
-    ):
-    train_csv_rows = []
-    validate_csv_rows = []
-    for label in os.listdir(directory):
-        validator_splitter = 0
-        from_dir = '{}/{}'.format(directory, label)
-        for file in os.listdir(from_dir):
-            from_path = '{}/{}'.format(from_dir, file)
-            abs_path = os.path.abspath(from_path)
-            is_bird = label in bird_labels
-            target_class = imagenetLabels.imagenet_label_values[label.replace('\'', '')]
-            row_dict = {'file': abs_path, 'class_num': [target_class]}
-            if validator_splitter % 10 == 0 and validate:
-                validate_csv_rows.append(row_dict)
-            else:
-                train_csv_rows.append(row_dict)
-            validator_splitter += 1
-        # print('Finished handling', label)
-    # print(len(train_csv_rows))
-    # print(len(validate_csv_rows))
-    random.shuffle(train_csv_rows)
-    random.shuffle(validate_csv_rows)
+        directory:str=imagenet_dir
+    ) -> Tuple[List[Dict[str, str]], List[Dict[str, str]]]:
+    bird_directories = set()
+    labels = []
+    for img_directory in os.listdir(directory):
+        underscore_index = img_directory.find('_')
+        img_directory_label = img_directory[underscore_index+1:]
+        if img_directory_label in bird_labels:
+            bird_directories.add(img_directory)
+    print(bird_directories)
+    for par_dir, _, files in os.walk(directory, followlinks=True):
+        is_bird_dir = any((x in par_dir for x in bird_directories))
+        labels += [1 if is_bird_dir else 0] * len(files)
+        if is_bird_dir:
+            print(par_dir, is_bird_dir)
+    print(len(labels))
+    with open('labels.pk', 'wb') as file:
+        pickle.dump(labels, file)
     
-    # print('Sifted all the data')
-    # print(len(train_csv_rows), len(validate_csv_rows))
-    return train_csv_rows, validate_csv_rows
-
-def writeCSVs(train_csv_rows, validate_csv_rows):
-    headers = ['file', 'class_num']
-    with open('../classes_train.csv', 'w') as train_file:
-        train_csv = csv.DictWriter(train_file, headers)
-        train_csv.writeheader()
-        train_csv.writerows(train_csv_rows)
-
-    with open('classes_validate.csv', 'w') as validate_file:
-        validate_csv = csv.DictWriter(validate_file, headers)
-        validate_csv.writeheader()
-        validate_csv.writerows(validate_csv_rows)
+    print('Sifted all the data')
+    return labels
 
 
 if __name__ == "__main__":
@@ -60,28 +104,5 @@ if __name__ == "__main__":
         help='Directory to decode',
         default=imagenet_dir
     )
-    parser.add_argument(
-        '-v',
-        '--validate',
-        help='Directory to decode',
-        action='store_true',
-        default=False
-    )
-    # parser.add_argument(
-    #     '-s',
-    #     '--only-snakes',
-    #     help='Directory to decode',
-    #     action='store_true'
-    # )
-    parser.add_argument(
-        '-s',
-        '--target-size',
-        help='Dimension to resize images to',
-        type=int
-    )
     args = parser.parse_args()
-    train_csv_rows, validate_csv_rows = decodeDir(
-        args.directory,
-        args.validate
-    )
-    writeCSVs(train_csv_rows, validate_csv_rows)
+    decodeDir(args.directory)

@@ -11,15 +11,15 @@ from PIL import Image
 # imagenet_dir = './ILSVRC2012_img_train'
 BASE_DIR = os.environ.get('ImageNetDir')
 INITIAL_DIR = BASE_DIR + '/ImageNetImagesUnsized'
-TARGET_DIR = BASE_DIR + '/ImageNetImages299Size'
-TARGET_SIZE = 299
+TARGET_SIZE = 224
+TARGET_DIR = BASE_DIR + f'''/ImageNetImages{TARGET_SIZE}Size'''
 
-def decodeDir(directory=INITIAL_DIR, target_dir=TARGET_DIR, target_size=TARGET_SIZE):
+def decodeDir(directory:str=INITIAL_DIR, target_dir:str=TARGET_DIR, target_size:int=TARGET_SIZE) -> None:
     train_csv_rows = []
     validate_csv_rows = []
     for label in os.listdir(directory):
-        if label in skip_labels:
-            continue
+        # if label in skip_labels:
+        #     continue
         validator_splitter = 0
         from_dir = '{}/{}'.format(directory, label)
         to_dir = '{}/{}'.format(target_dir, label)
@@ -63,5 +63,12 @@ if __name__ == "__main__":
         help='Directory to decode',
         default=TARGET_DIR
     )
+    parser.add_argument(
+        '-s',
+        '--size',
+        help='Desired pixel size of the output images',
+        default=TARGET_SIZE,
+        type=int
+    )
     args = parser.parse_args()
-    decodeDir(args.directory, args.target)
+    decodeDir(args.directory, args.target, args.size)
