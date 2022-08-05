@@ -7,46 +7,40 @@ import argparse
 import tensorflow as tf
 from imagenetLabels import imagenet_labels, imagenet_original_labels, skip_labels
 from PIL import Image
+from PIL.Image import Resampling
+from ImageNetSifter import bird_labels
 
 # imagenet_dir = './ILSVRC2012_img_train'
 BASE_DIR = os.environ.get('ImageNetDir')
 INITIAL_DIR = BASE_DIR + '/ImageNetImagesUnsized'
-TARGET_SIZE = 224
+TARGET_SIZE = 380
 TARGET_DIR = BASE_DIR + f'''/ImageNetImages{TARGET_SIZE}Size'''
 
 def decodeDir(directory:str=INITIAL_DIR, target_dir:str=TARGET_DIR, target_size:int=TARGET_SIZE) -> None:
-    train_csv_rows = []
-    validate_csv_rows = []
     for label in os.listdir(directory):
-        # if label in skip_labels:
-        #     continue
-        validator_splitter = 0
         from_dir = '{}/{}'.format(directory, label)
-        to_dir = '{}/{}'.format(target_dir, label)
+        sub_dir = 'bird'
+        inc = 1
+        if label not in bird_labels:
+            sub_dir = 'not_bird'
+            inc = 10
+        else:
+            print(f'It\'s a bird label {label}')
+
+        to_dir = '{}/{}/{}'.format(target_dir, sub_dir, label)
         if not os.path.exists(to_dir):
             os.makedirs(to_dir)
-        for file in os.listdir(from_dir):
+
+        for file in os.listdir(from_dir)[::inc]:
             from_path = '{}/{}'.format(from_dir, file)
-            # target_name = file[:-3] + 'bmp'
             target_path = '{}/{}'.format(to_dir, file)
             im = Image.open(from_path)
-            target_im = im.resize((target_size, target_size), resample=Image.BICUBIC)
+            target_im = im.resize((target_size, target_size), resample=Resampling.BICUBIC)
             try:
                 target_im.save(target_path)
             except:
                 print(target_path)
-            # abs_path = os.path.abspath(from_path)
-            # row_dict = {'file': abs_path, 'class_num': [target_class]}
-            # if validator_splitter % 10 == 0:
-            #     validate_csv_rows.append(row_dict)
-            # else:
-            # train_csv_rows.append(row_dict)
-            # validator_splitter += 1
-        print('Finished handling', label)
-
-    # print('Sifted all the data')
-    # print(len(train_csv_rows), len(validate_csv_rows))
-    # return len(train_csv_rows), len(validate_csv_rows)
+        print('Finished handling', to_dir)
 
 
 if __name__ == "__main__":

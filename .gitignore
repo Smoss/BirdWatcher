@@ -117,3 +117,5 @@ pip-delete-this-directory.txt
 *.csv
 *.pk
 .idea/*
+*.h5
+*.hdf5
