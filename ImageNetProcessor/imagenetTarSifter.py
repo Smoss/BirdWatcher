@@ -45,7 +45,26 @@ def decodeDir(directory=imagenet_dir, snake_target_dir=snake_dir, not_snake_targ
         if not os.path.exists(final_target):
             os.makedirs(final_target)
         with tarfile.open(file) as tarball:
-            tarball.extractall(final_target)
+            def is_within_directory(directory, target):
+                
+                abs_directory = os.path.abspath(directory)
+                abs_target = os.path.abspath(target)
+            
+                prefix = os.path.commonprefix([abs_directory, abs_target])
+                
+                return prefix == abs_directory
+            
+            def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+            
+                for member in tar.getmembers():
+                    member_path = os.path.join(path, member.name)
+                    if not is_within_directory(path, member_path):
+                        raise Exception("Attempted Path Traversal in Tar File")
+            
+                tar.extractall(path, members, numeric_owner=numeric_owner) 
+                
+            
+            safe_extract(tarball, final_target)
         print('Extract all the ' + human_readable_label + ' images to ' + final_target)
         
         
