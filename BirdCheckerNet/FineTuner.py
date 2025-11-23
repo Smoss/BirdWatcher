@@ -7,13 +7,13 @@ from numpy import  random
 
 import pandas as pd
 import tensorflow as tf
-import tensorflow.keras as K
-from tensorflow.keras import layers, utils, mixed_precision, optimizers, backend
-from tensorflow.keras.models import load_model
-from tensorflow.keras.applications import convnext
-from tensorflow.keras.applications import xception
-from tensorflow.keras.applications import efficientnet_v2
-from tensorflow.keras.applications import efficientnet
+K = tf.keras
+layers, utils, mixed_precision, optimizers, backend = K.layers, K.utils, K.mixed_precision, K.optimizers, K.backend
+load_model = K.models.load_model
+convnext = K.applications.convnext
+xception = K.applications.xception
+efficientnet_v2 = K.applications.efficientnet_v2
+efficientnet = K.applications.efficientnet
 import tensorflow_hub as hub
 import os
 IMG_LENGTH = 380
@@ -151,7 +151,7 @@ def main(use_mixed_precision: bool = False, training_batch_size: int = TRAINING_
     output = layers.Dense(units = 120, activation='relu', kernel_regularizer='l2')(output)
     output = layers.Dropout(.2)(output)
     output = layers.Dense(units = 120, activation='relu', kernel_regularizer='l2')(output)
-    # output = layers.Dropout(.1)(output)
+    output = layers.Dropout(.1)(output)
     output = layers.Dense(units = 1, activation='sigmoid')(output)
     bird_watcher = tf.keras.Model(inputs=[i], outputs=[output], name='BirdWatcher')
 
@@ -211,7 +211,7 @@ if __name__ == "__main__":
         '--model',
         help='Model to use',
         default='Xception',
-        choices=['Xception', 'EfficientNet', 'ConvNetX']
+        choices=['Xception', 'EfficientNet', 'ConvNetX', 'EfficientNetV2']
     )
     parser.add_argument(
         '-d',
